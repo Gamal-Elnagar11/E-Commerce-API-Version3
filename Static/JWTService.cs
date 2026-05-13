@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using E_Commerce_API.Models;
 using Microsoft.AspNetCore.Identity;
+using E_Commerce_API.Data;
 
 namespace E_Commerce_API.Static
 {
@@ -13,15 +14,20 @@ namespace E_Commerce_API.Static
 
         private readonly IConfiguration _configuration;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly Application _context;
 
-        public JWTService(IConfiguration configuration, UserManager<User> userManager)
+        public JWTService(IConfiguration configuration, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, Application context)
         {
             _configuration = configuration;
             _userManager = userManager;
+            this.roleManager = roleManager;
+            _context = context;
         }
 
-        public async Task<string> GenerateTokenAsync(User user)
+        public async Task<(string AccessToken, string RefreshToken)> GenerateTokenAsync(User user)
         {
+
             // 1️⃣ نجيب الرولز الخاصة بالمستخدم
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -38,6 +44,13 @@ namespace E_Commerce_API.Static
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
+
+                var rolee = await roleManager.FindByNameAsync(role);
+                if (rolee != null)
+                {
+                    var roleClaims = await roleManager.GetClaimsAsync(rolee);
+                    claims.AddRange(roleClaims); // إضافة كل صلاحيات الرول للتوكن
+                }
             }
 
             // 3️⃣ نجيب الـ Secret Key
@@ -56,8 +69,32 @@ namespace E_Commerce_API.Static
                 signingCredentials: creds
             );
 
+            // here has token
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+
+
+
+            // Refresh Token
+            // here delete any token from DB
+            var oldTokens = _context.RefreshToken.Where(a => a.UserId == user.Id);
+                _context.RefreshToken.RemoveRange(oldTokens);
+
+            var refreshToken = new RefreshToken
+            {
+                Token = Guid.NewGuid().ToString(),
+                Expires = DateTime.UtcNow.AddDays(3),
+                UserId = user.Id
+            };
+
+
+            _context.RefreshToken.Add(refreshToken);
+            await _context.SaveChangesAsync();
+
+
+
             // 5️⃣ تحويله لـ string
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return (accessToken, refreshToken.Token);
         }
     }
 }

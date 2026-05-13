@@ -22,7 +22,7 @@ namespace E_Commerce_API.Controllers
 
 
 
-        [HttpGet]
+        [HttpGet(Name = "GetFB")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> GetAllFeedback()
         {
@@ -32,7 +32,7 @@ namespace E_Commerce_API.Controllers
 
 
 
-        [HttpPost]
+        [HttpPost(Name = "AddFB")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "UserOrAdmin")]
         public async Task<IActionResult> AddFeedback(FeedDTO feeddto)
         {
@@ -59,7 +59,7 @@ namespace E_Commerce_API.Controllers
 
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteFB")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteFeedback(int id)
         {

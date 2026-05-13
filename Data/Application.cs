@@ -21,6 +21,7 @@ namespace E_Commerce_API.Data
        public  DbSet<OrderItem> OrderItems { get; set; }
        public  DbSet<Product> Products { get; set; }
          public DbSet<Feedback> Feedbacks { get; set; }
+         public DbSet<RefreshToken> RefreshToken { get; set; }
 
 
 

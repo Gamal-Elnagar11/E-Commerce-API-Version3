@@ -43,7 +43,7 @@ namespace E_Commerce_API.Controllers
       
        
         
-           [HttpPost("add-item-to-cart")]
+           [HttpPost("add")]
             public async Task<IActionResult> AddItemToCart(int productId, int quantity, CancellationToken ct = default)
             {
                 try
@@ -59,7 +59,7 @@ namespace E_Commerce_API.Controllers
             }
          
         
-          [HttpPut("update-item-in-cart")]
+          [HttpPut("update")]
             public async Task<IActionResult> UpdateItemQuantity(int productId, int newQuantity, CancellationToken ct = default)
             {
                 try
@@ -77,7 +77,7 @@ namespace E_Commerce_API.Controllers
             }
 
 
-              [HttpDelete("remove-item-from-cart")]
+              [HttpDelete("remove")]
             public async Task<IActionResult> RemoveItemFromCart(int productId, CancellationToken ct = default)
             {
                 try

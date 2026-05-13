@@ -28,8 +28,15 @@ namespace E_Commerce_API.Controllers
                 _contextAccessor = contextAccessor;
             }
 
-           [HttpGet("My-Orders")]
-            public async Task<IActionResult> GetMyOrders(CancellationToken ct = default)
+        [HttpGet("MyOrders")]
+        [Consumes("application/json")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+        [EndpointName("Gamal2")]
+        [EndpointSummary("Get My Order")]
+        [EndpointDescription("Get My Order From System and Get Status Of Order")]
+        public async Task<IActionResult> GetMyOrders(CancellationToken ct = default)
             {
                
                     var userId = _contextAccessor.HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -39,10 +46,18 @@ namespace E_Commerce_API.Controllers
                     return Ok(response);
                 
             }
-         
-        
-            [HttpGet("{orderId}")]
-         public async Task<IActionResult> GetOrderById(int orderId, CancellationToken ct = default)
+
+        [HttpGet("{orderId}")]
+        [Consumes("application/json")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+        [EndpointName("Gamal3")]
+        [EndpointSummary("Get Order By Id")]
+        [EndpointDescription("Get Any Cart With Id")]
+
+
+          public async Task<IActionResult> GetOrderById(int orderId, CancellationToken ct = default)
             {
                  
                     var order = await _orderService.GetOrderById(orderId,ct);
@@ -51,8 +66,18 @@ namespace E_Commerce_API.Controllers
                  
             }
 
-         
-            [HttpGet("AllOrders")]
+
+
+        [HttpGet("Orders")]
+        [Consumes("application/json")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+        [EndpointName("Gamal4")]
+        [EndpointSummary("Get All Orders")]
+        [EndpointDescription("Get All Orders From System")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> GetAllOrders(CancellationToken ct = default)
             {
@@ -64,7 +89,15 @@ namespace E_Commerce_API.Controllers
             }
 
 
+
         [HttpGet("Payment-Methods")]
+        [Consumes("application/json")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+        [EndpointName("Gamal6")]
+        [EndpointSummary("Payment Methods")]
+        [EndpointDescription("Get All Payment Method From System")]
         public IActionResult GetPaymentMethods()
         {
             var methods = Enum.GetValues(typeof(Payment))
@@ -75,7 +108,16 @@ namespace E_Commerce_API.Controllers
         }
 
 
-        [HttpPost("Checkout->Create-Order")]
+
+        [HttpPost("Checkout")]
+        [Consumes("application/json")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+        [EndpointName("Gamal1")]
+        [EndpointSummary("Create New Order")]
+        [EndpointDescription("Create New Order and Confirm Shippeing Data")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutDTO dto, CancellationToken ct = default)
         {
              
@@ -95,8 +137,18 @@ namespace E_Commerce_API.Controllers
 
 
 
+
         [HttpPut("{orderId}/StatusOrder")]
-           [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Consumes("application/json")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+        [EndpointName("Gamal5")]
+        [EndpointSummary("Update Status Order")]
+        [EndpointDescription("Controll Of Status Order Like Peinding or Confirmed")]
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromQuery] OrderStatus status, CancellationToken ct = default)
             {
                 

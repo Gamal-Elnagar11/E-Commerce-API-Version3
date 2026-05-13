@@ -37,8 +37,7 @@ namespace E_Commerce_API.Middelwares
         {
             context.Response.ContentType = "application/json";
 
-            // 1. تحديد الـ Status Code
-            var statusCode = exception switch
+             var statusCode = exception switch
             {
                 KeyNotFoundException => StatusCodes.Status404NotFound,
                 ArgumentException => StatusCodes.Status400BadRequest,
@@ -47,8 +46,7 @@ namespace E_Commerce_API.Middelwares
 
             context.Response.StatusCode = statusCode;
 
-            // 2. استخدام كلاس ProblemDetails الجاهز
-            var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+             var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
             {
                 Status = statusCode,
                 Title = "An error occurred while processing your request.",
@@ -57,8 +55,7 @@ namespace E_Commerce_API.Middelwares
                 Instance = context.Request.Path // المسار اللي حصل فيه المشكلة
             };
 
-            // 3. لو عايز تضيف حاجات زيادة (Custom Extensions)
-            problemDetails.Extensions.Add("traceId", context.TraceIdentifier);
+             problemDetails.Extensions.Add("traceId", context.TraceIdentifier);
 
             return context.Response.WriteAsJsonAsync(problemDetails);
         }

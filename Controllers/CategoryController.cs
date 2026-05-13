@@ -26,7 +26,7 @@ namespace E_Commerce_API.Controllers
 
 
 
-        [HttpGet("Get All Category With Products")]
+        [HttpGet("Get Categories1")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllWithProducts(CancellationToken ct = default)
         {
@@ -42,7 +42,7 @@ namespace E_Commerce_API.Controllers
             }
         }
 
-        [HttpGet("Get All Category")]
+        [HttpGet("Get Categories2")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllCategory(CancellationToken ct = default)
         {
@@ -52,7 +52,7 @@ namespace E_Commerce_API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetById")]
         [AllowAnonymous]
         public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
         {
@@ -68,7 +68,7 @@ namespace E_Commerce_API.Controllers
             }
         }
 
-        [HttpGet("Search Category")]
+        [HttpGet("Search1")]
         [AllowAnonymous]
         public async Task<IActionResult> Search(string? name, CancellationToken ct = default)
         {
@@ -80,7 +80,7 @@ namespace E_Commerce_API.Controllers
         }
 
 
-        [HttpGet("Search With Products")]
+        [HttpGet("Search2")]
         [AllowAnonymous]
         public async Task<IActionResult> SearchWithProducts(string? name, CancellationToken ct = default)
         {
@@ -113,7 +113,7 @@ namespace E_Commerce_API.Controllers
         }
 
 
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "UpdateCategory")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> UpdatCategory(int id , CategoryName categoryName, CancellationToken ct = default)
         {
@@ -130,9 +130,9 @@ namespace E_Commerce_API.Controllers
             }
         }
 
-
-        [HttpDelete("{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "DeletePolicy")]
+        [HttpDelete("{id}", Name = "DeleteCategory")]
+        // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken ct = default)
         {
             try

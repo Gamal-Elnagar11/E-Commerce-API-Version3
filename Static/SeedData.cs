@@ -1,5 +1,7 @@
 ﻿using E_Commerce_API.Models;
+using E_Commerce_API.Permissions;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace E_Commerce_API.Static
 {
@@ -44,7 +46,30 @@ namespace E_Commerce_API.Static
             }
         }
 
-    }
 
+
+        public static async Task SeedPermissions(IServiceProvider serviceProvider)
+        {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            var adminRole = await roleManager.FindByNameAsync("Admin");
+            if (adminRole != null)
+            {
+                // قائمة الصلاحيات التي نريد إضافتها
+                var permissions = new List<string> { Permission.Project.Create, Permission.Project.Delete };
+
+                // جلب الصلاحيات الموجودة حالياً لتجنب التكرار
+                var currentClaims = await roleManager.GetClaimsAsync(adminRole);
+
+                foreach (var permission in permissions)
+                {
+                    if (!currentClaims.Any(c => c.Type == "permission" && c.Value == permission))
+                    {
+                        await roleManager.AddClaimAsync(adminRole, new Claim("permission", permission));
+                    }
+                }
+            }
+        }
+
+    }
 }
-    

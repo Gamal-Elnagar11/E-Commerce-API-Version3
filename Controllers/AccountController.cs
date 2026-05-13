@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using E_Commerce_API.Data;
 using E_Commerce_API.DTO.Identity;
 using E_Commerce_API.Filters;
 using E_Commerce_API.Models;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce_API.Controllers
 {
@@ -23,15 +25,16 @@ namespace E_Commerce_API.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly JWTService _jwtService;
         private readonly IdentityUsers _users;
- 
-        public AccountController(IdentityUsers users, JWTService jwtService,IMapper mapper, UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly Application _context;
+
+        public AccountController(IdentityUsers users, JWTService jwtService, IMapper mapper, UserManager<User> userManager, SignInManager<User> signInManager, Application context)
         {
             _mapper = mapper;
             _userManager = userManager;
             _signInManager = signInManager;
             _jwtService = jwtService;
             _users = users;
-
+            _context = context;
         }
 
         [HttpPost("Register")]
@@ -62,7 +65,12 @@ namespace E_Commerce_API.Controllers
                 await _userManager.AddToRoleAsync(newUser, "User");
                 var token = await _jwtService.GenerateTokenAsync(newUser);
 
-            return Ok(token);
+            return Ok(
+                new
+                {
+                    AccessToken = token.AccessToken,
+                    RefreshToken = token.RefreshToken
+                });
 
         }
 
@@ -83,12 +91,16 @@ namespace E_Commerce_API.Controllers
 
             var token = await _jwtService.GenerateTokenAsync(user);
 
-            return Ok(token);
+            return Ok(new
+            {
+                AccessToken = token.AccessToken,
+                RefreshToken = token.RefreshToken
+            });
 
         }
 
 
-        [HttpPost("AddRole")]
+        [HttpPost("Role")]
         public async Task<IActionResult> PromoteToAdmin(string userEmail)
         {
             // دور الـ UserManager
@@ -110,7 +122,7 @@ namespace E_Commerce_API.Controllers
             return Ok($"User {userEmail} is now an Admin");
         }
 
-        [HttpGet("AllUsers")]
+        [HttpGet("Users")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers( CancellationToken ct = default)
         {
@@ -121,7 +133,7 @@ namespace E_Commerce_API.Controllers
 
 
 
-        [HttpPut("DeletUser")]
+        [HttpPut("Delete")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string email, CancellationToken ct = default)
         {
@@ -137,8 +149,51 @@ namespace E_Commerce_API.Controllers
 
 
 
+        [HttpPost("Refresh")]
+        public async Task<IActionResult> RefreshToken(string refreshtoken)
+        {
+            var tokenRecord = await _context.RefreshToken.FirstOrDefaultAsync(a => a.Token == refreshtoken);
+
+            if(tokenRecord == null)
+                return Unauthorized ("this token invalid");
+
+            if (tokenRecord.Expires < DateTime.UtcNow)
+                return Unauthorized("this token is expired");
 
 
+            if (tokenRecord.IsRevoked)
+                return Unauthorized("this token is cancelled");
+
+
+            var user = await _userManager.FindByIdAsync(tokenRecord.UserId);
+            if (user == null)
+                return NotFound("this user invalid");
+
+            var newToken = await _jwtService.GenerateTokenAsync(user);
+
+
+            return Ok(
+                new
+                {
+                    AccessToken = newToken.AccessToken,
+                    RefreshToken = newToken.RefreshToken,
+                });
+
+        }
+
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout(string refreshToken)
+        {
+            var accesstoken = await _context.RefreshToken.FirstOrDefaultAsync(a => a.Token == refreshToken);
+            if(accesstoken != null)
+            {
+                _context.RefreshToken.RemoveRange(accesstoken);
+                _context.SaveChanges();
+            }
+            return Ok("Logout Successfuly");
+
+        }
 
 
     }

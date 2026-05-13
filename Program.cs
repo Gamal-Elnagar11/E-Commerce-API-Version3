@@ -1,13 +1,13 @@
 ﻿
-using E_Commerce_API.Controllers;
-using E_Commerce_API.Data;
+ using E_Commerce_API.Data;
 using E_Commerce_API.DependencyInjection;
 using E_Commerce_API.Filters;
 using E_Commerce_API.Middelwares;
 using E_Commerce_API.Models;
- using E_Commerce_API.Static;
-using E_Commerce_API.Validation.ProductDTOValidator;
-using FluentValidation;
+using E_Commerce_API.OpenAPI;
+using E_Commerce_API.Permissions;
+using E_Commerce_API.Static;
+ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -54,7 +54,14 @@ namespace E_Commerce_API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(opt =>
             {
-            
+                opt.OperationFilter<APISpecification>();
+                opt.CustomOperationIds(apiDesc =>
+                {
+                    var name = apiDesc.ActionDescriptor.AttributeRouteInfo?.Name;
+                    if (!string.IsNullOrEmpty(name)) return name;
+                    return apiDesc.RelativePath?.Split('/').Last();
+                });
+
                 opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme.",
@@ -169,6 +176,13 @@ namespace E_Commerce_API
                 options.AddPolicy("UserOrAdmin", policy =>
                         policy.RequireClaim("role", "User", "Admin"));
                 // policy.RequireRole("User", "Admin"));
+
+                options.AddPolicy("DeletePolicy", policy =>
+                policy.RequireClaim("permission", Permission.Project.Delete));
+           
+                options.AddPolicy("CreatePolicy", policy =>
+                policy.RequireClaim("permission", Permission.Project.Create));
+           
             });
            
             var app = builder.Build();
@@ -184,6 +198,7 @@ namespace E_Commerce_API
                 var services = scope.ServiceProvider;
                 await SeedData.CreateRoles(services);
                 await SeedData.CreateAdmin(services);
+                await SeedData.SeedPermissions(services);
             }      // create Data Seed
             app.UseExceptionHandler();
             app.UseStaticFiles();
